@@ -1,0 +1,268 @@
+#include <iostream>
+#include<string>
+#include<stack>
+#include <cstdlib>
+using namespace std;
+ int rule[7][7];           //计算法则   通过当前读取的操作符与栈顶的比较的依据
+ stack<double> output;       //存放操作数
+ stack<char> operators;      //存放operator
+ void  GetResult(double& result)    //取出操作数并计算
+ {
+              double temp1,temp2;
+               temp1=output.top();
+                output.pop();
+                temp2=output.top();
+                output.pop();
+
+
+                switch (operators.top())
+                {
+                case '+':                    //计算加法的操作方法
+                    result=temp2+temp1;
+                    break;
+                case '-':                    //计算减法的操作方法
+                    result=temp2-temp1;
+                    break;
+                case '*':                    //计算乘法的操作方法
+                    result=temp2*temp1;
+                    break;
+                case '/':                    //计算除法的操作方法
+                    result=temp2/temp1;
+                    break;
+                }
+                output.push(result);         //输出结果
+                operators.pop();
+ }
+ bool  IsNum(char str1)
+{
+         if ((str1>='0'&&str1<='9')||str1=='.')  //判断输入内容是否有误
+            return true;
+        return false;
+}
+ 
+ void  init()                               //声明
+ {
+     for(int i=0;i<7;i++)
+     {
+         for(int j=0;j<7;j++)
+         {
+             if(i==0||i==1)
+             {
+                 if(j==0||j==1||j==5||j==6)
+                 {
+                     rule[i][j]=0;
+                 }
+                 else
+                 {
+                     rule[i][j]=1;
+                 }
+             }
+             else if(i==2||i==3)
+             {
+                 if(j==4)
+                 {
+                     rule[i][j]=1;
+                 }
+                 else
+                    rule[i][j]=0;
+             }
+             else if(i==4||i==6)
+             {
+                 if(j==5)
+                 {
+                     rule[4][5]=2;
+                     rule[6][5]=3;
+                 }
+                 else if(j==6)
+                 {
+                     rule[4][6]=3;
+                     rule[6][6]=2;
+                 }
+                 else
+                    rule[i][j]=1;
+             }
+             else
+             {
+                 if(j==4)
+                 {
+                     rule[i][j]=3;
+                 }
+                 else
+                    {
+                    rule[i][j]=0;
+                 }
+
+
+             }
+         }
+     }
+ }
+int  Equal(char m ,char n)//对应关系
+{
+    int x,y;
+    switch(m)
+    {
+       case '+':
+           x=0;
+           break;
+           case '-':
+           x=1;
+           break;
+           case '*':
+           x=2;
+           break;
+           case '/':
+           x=3;
+           break;
+           case '(':
+           x=4;
+           break;
+           case ')':
+           x=5;
+           break;
+           case '#':
+           x=6;
+           break;
+           default:
+            cout<<"BadInput"<<endl;
+            exit(1);
+    }
+    switch(n)
+    {
+       case '+':
+           y=0;
+           break;
+           case '-':
+           y=1;
+           break;
+           case '*':
+           y=2;
+           break;
+           case '/':
+           y=3;
+           break;
+           case '(':
+           y=4;
+           break;
+           case ')':
+           y=5;
+           break;
+           case '#':
+           y=6;
+           break;
+           default:
+            cout<<"BadInput"<<endl;
+            exit(1);
+    }
+    return  rule[x][y];
+}
+int main()  //主函数
+{
+    cout<<"   简单计算器"<<endl;
+    char   play='y';
+    while(play=='y')
+    {
+        init();
+    string str;
+    cout<<"请输入需要计算的式子："<<endl;
+    cin>>str;
+    str+="#";
+    operators.push('#');
+    string temp,qian="";
+    for(int i=0;i<str.size();i++)
+    {
+        bool mark=false;
+        temp=str[i];
+        if(IsNum(str[i]))
+        {
+            mark=true;
+            if(++i<str.size())
+            {
+               while(IsNum(str[i]))
+                {
+                  temp+=str[i];
+                  i++;
+                }
+            }
+             temp.insert(0,qian);
+             qian="";
+             i--;
+        }
+        else
+        {
+            if(temp[0]!=')'&&i+2<str.size()&&IsNum(str[i+2]))
+            {
+                if(str[i+1]=='+'||str[i+1]=='-')
+                {
+                    qian=str[i+1];
+                     i++;
+                }
+                 else
+                 {
+                 
+					 if(IsNum(str[i+1]))
+                     {
+
+
+                     }
+                     else  if(str[i+1]=='('){
+
+
+                     }
+                     else
+                     {
+                        cout<<"Badinput"<<endl;
+                        exit(1);
+                     }
+                 }
+            }
+        }
+        if(mark)//将数存入栈
+        {
+            double num=atof(temp.c_str());
+            output.push(num);
+            mark=false;
+        }
+        else
+        {
+            int x=Equal(operators.top(),temp[0]);
+            double  result;
+            switch(x)
+            {
+            case 0:
+                if(temp[0]!=')')
+                {
+                   GetResult(result);
+                   if(qian!="")
+                   {
+                      i-=2;
+                   }
+                   else
+                       i--;
+                }
+               else
+               {
+                   while(operators.top()!='(')
+                   {
+                       GetResult(result);
+                   }
+                   operators.pop();
+               }
+                break;
+            case 1:
+                  operators.push(temp[0]);
+                    break;
+            case 2:
+                operators.pop();
+                break;
+            case 3:
+                cout<<"BadInput"<<endl;
+                exit(1);
+            }
+        }
+    }
+             cout<<output.top()<<endl;
+			 return 0;
+    }
+        return 0;
+} 
